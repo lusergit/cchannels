@@ -1,0 +1,55 @@
+#+TITLE: Communication channels in C
+#+AUTHOR: lusergit
+#+DATE: 27 May 2024
+
+* Yet another channel-based communication library in C
+  /Yes/. But this is particularly hard to debug: Everything is a
+  macro. =CHANNEL(TYPE)= Generates the code for the channel of that
+  particular type. Also probably leaks memory, I'm not using any
+  =free= in the code even though I'm allocating /a lot/ of memory.
+
+* The reason
+  Boredom and lack of comprehensive solutions in plain C (now I
+  understand why)
+
+* How it works
+  - include the ="channels.h"= header file, this will load the macros
+    for the queue and channels, both are type agnostic.
+    #+begin_src c
+      #include "channels.h"
+    #+end_src
+  - Build your structures, your code to manage them... go on with your
+    life
+    #+begin_src c
+      // ...
+
+      typedef struct my_structure {
+	int* this_will_leak_for_sure;
+	char this_maybe_not_idk;
+	// ...
+      } my_structure;
+
+      // ...
+    #+end_src
+  - insert the macro =CHANNEL(TYPE)= where =TYPE= is the type you need
+    to send/receive
+    #+begin_src c
+      CHANNEL(my_struct);
+    #+end_src
+  - ???
+  - profit. Now you can use channels of that type!
+    #+begin_src c
+      my_struct_channel* channel = my_struct_new_channel();
+      my_struct new_struct = /* ... idk how your code works ... */ ;
+
+      // send
+      my_struct_snd(channel, new_struct);
+
+      //recive
+      my_struct* recived = my_struct_rcv(channel);
+    #+end_src
+    Notice that channels are bi-directional and we can send *and*
+    recive in the same channel... incredible!
+
+* Examples are provided
+  in the [[file:cchannels/examples/][examples]] folder
