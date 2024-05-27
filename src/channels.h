@@ -16,7 +16,14 @@
     TYPE##_queue *messages;						\
     pthread_mutex_t *lock;						\
     sem_t *sem;								\
-  } TYPE##_channel;									\
+  } TYPE##_channel;							\
+									\
+  void del_channel(TYPE##_channel* c) {					\
+    pthread_mutex_destroy(c->lock);					\
+    sem_destroy(c->sem);						\
+    TYPE##_queue_del(c->messages);					\
+    free(c);								\
+  }									\
 									\
   void TYPE##_channel_init(TYPE##_channel *c) {				\
     c->messages = (TYPE##_queue *)malloc(sizeof(TYPE##_queue));		\
@@ -25,6 +32,12 @@
     TYPE##_queue_init(c->messages);					\
     pthread_mutex_init(c->lock, NULL);					\
     sem_init(c->sem, 0, 0);						\
+  }									\
+									\
+  TYPE##_channel* TYPE##_new_channel() {				\
+    TYPE##_channel* c = (TYPE##_channel*) malloc (sizeof(TYPE##_channel)); \
+    TYPE##_channel_init(c);						\
+    return c;								\
   }									\
 									\
   typedef struct TYPE##_send_args {					\

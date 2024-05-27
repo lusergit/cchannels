@@ -15,14 +15,20 @@
   } TYPE##_node;							\
 									\
   /* Queue type */							\
-  typedef struct TYPE##_queue {							\
+  typedef struct TYPE##_queue {						\
     TYPE##_node *front;							\
     TYPE##_node *rear;							\
-  } TYPE##_queue;									\
+  } TYPE##_queue;							\
 									\
   /* INIT queue */							\
   void TYPE##_queue_init(TYPE##_queue *q) {				\
     q->front = q->rear = NULL;						\
+  }									\
+									\
+  TYPE##_queue* TYPE##_new_queue() {					\
+    TYPE##_queue* q = (TYPE##_queue*) malloc (sizeof(TYPE##_queue));	\
+    TYPE##_queue_init(q);						\
+    return q;								\
   }									\
 									\
   /* enqueue operation FIFO mode */					\
