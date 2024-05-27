@@ -20,6 +20,10 @@
     TYPE##_node *rear;							\
   } TYPE##_queue;							\
 									\
+  void TYPE##_queue_del(TYPE##_queue* q) {				\
+    									\
+  }									\
+									\
   /* INIT queue */							\
   void TYPE##_queue_init(TYPE##_queue *q) {				\
     q->front = q->rear = NULL;						\
@@ -52,7 +56,7 @@
 									\
   /* Dequeue, also FIFO mode */						\
   TYPE* TYPE##_pop(TYPE##_queue *q) {					\
-    if (q->front == NULL) {						\
+    if (!(q->front)) {							\
       /* No error message, just return null, callee responsability */	\
       return NULL;							\
     }									\
@@ -63,7 +67,6 @@
     if (q->front == NULL) {						\
       q->rear = NULL;							\
     }									\
-    free(temp);								\
     return value;							\
   }									\
 
