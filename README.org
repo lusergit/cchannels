@@ -5,8 +5,8 @@
 * Yet another channel-based communication library in C
   /Yes/. But this is particularly hard to debug: Everything is a
   macro. =CHANNEL(TYPE)= Generates the code for the channel of that
-  particular type. Also probably leaks memory, I'm not using any
-  =free= in the code even though I'm allocating /a lot/ of memory.
+  particular type. Also probably leaks memory, I'm not that good at
+  managing memory.
 
 * The reason
   Boredom and lack of comprehensive solutions in plain C (now I
