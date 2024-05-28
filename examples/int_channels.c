@@ -10,20 +10,16 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#define handle_error_en(en, msg)				\
-  do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
-
-#define handle_error(msg)				\
-  do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
+CHANNEL(int);
 // from here on, int channels are available, we can
 /*
-  - Create a channel
- */
-CHANNEL(int);
+  - Create a channel -> int_new_channel()
+  - Destroy (annihilate) channels -> int_del_channel(c)
+  - Send over a channel (non-blocking) -> int_snd(c, i)
+  - Recive over a channel (blocking) -> int_rcv
+*/
 
-typedef struct server_args
-{
+typedef struct server_args {
   int_channel* c;
   pthread_t* pid;
 } server_args ;
@@ -37,14 +33,16 @@ void* server(void* argv) {
     int* next = int_rcv(c);
     if(!next || *next == 0)
       exit = 1;
-    else
+    else {
       printf("[Server]: Recived integer %d\n", *next);
+      // I'm responsible for the data I recived, I have to free it!
+      free(next);
+    }
   } while(!exit);
   pthread_exit(NULL);
 }
 
-typedef struct client_args
-{
+typedef struct client_args {
   int_channel* c;
   pthread_t* pid;
 } client_args ;
@@ -53,38 +51,51 @@ void* client(void* argv) {
   client_args* args = (client_args*)argv;
   int_channel* c = args->c;
   pthread_t* pid = args->pid;
-  int sequence[10] = {1,2,3,4,5,6,7,8,9,0};
   for(int i=0; i<10; i++){
-    printf("[Client] Sending integer %d\n", sequence[i]);
-    int_snd(c, sequence[i]);
+    int* to_send = (int*) malloc(sizeof(int));
+    *to_send = (i + 1) % 10;
+    printf("[Client] Sending integer %d\n", *to_send);
+    int_snd(c, to_send);
+    // I'm not responsible anymore for the portion of memory I've
+    // sent! the reciver is!
   }
   pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[])
 {
+  /* create channel */
   int_channel* c = int_new_channel();
 
-  /* Run server */
+  /* run server */
   pthread_t* server_pid = (pthread_t*)malloc(sizeof(pthread_t));
   server_args* sargs = (server_args*)malloc(sizeof(server_args));
   sargs->pid = server_pid;
   sargs->c = c;
   pthread_create(server_pid, NULL, server, sargs);
 
-
-  /* Run client */
+  /* run client */
   pthread_t* client_pid = (pthread_t*)malloc(sizeof(pthread_t));
   client_args* cargs = (client_args*)malloc(sizeof(client_args));
   cargs->pid = client_pid;
   cargs->c = c;
   pthread_create(client_pid, NULL, client, cargs);
 
+  /* delete client */
   pthread_join(*client_pid, NULL);
   printf("Client Terminated\n");
+  free(cargs);
+  free(client_pid);
+
+  /* delete server */
   pthread_join(*server_pid, NULL);
   printf("Server Terminated\n");
+  free(sargs);
+  free(server_pid);
 
-  return 0;
+  /* delete channel */
+  int_del_channel(c);
+
+  exit(EXIT_SUCCESS);
 }
 

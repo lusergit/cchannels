@@ -14,14 +14,25 @@
     struct TYPE##_node *next;						\
   } TYPE##_node;							\
 									\
+  /* Recursively delete nodes of a linked list, but DO NOT delete the	\
+     data it points to, it was created outside of the library and as	\
+     such I'm not responsible for it !*/				\
+  void TYPE##_del_node(TYPE##_node* n) {				\
+    if(n) {								\
+      TYPE##_del_node(n->next);						\
+      free(n);								\
+    }									\
+  }									\
+									\
   /* Queue type */							\
   typedef struct TYPE##_queue {						\
     TYPE##_node *front;							\
     TYPE##_node *rear;							\
   } TYPE##_queue;							\
 									\
-  void TYPE##_queue_del(TYPE##_queue* q) {				\
-    									\
+  void TYPE##_del_queue(TYPE##_queue* q) {				\
+    TYPE##_del_node(q->front); /* Delete the queue */			\
+    free(q); /* Delete the struct */					\
   }									\
 									\
   /* INIT queue */							\

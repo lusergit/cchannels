@@ -22,7 +22,7 @@
   void TYPE##_del_channel(TYPE##_channel* c) {				\
     pthread_mutex_destroy(c->lock);					\
     sem_destroy(c->sem);						\
-    TYPE##_queue_del(c->messages);					\
+    TYPE##_del_queue(c->messages);					\
     free(c);								\
   }									\
 									\
@@ -48,24 +48,28 @@
   									\
   void* TYPE##_psend(void *args) {					\
     TYPE##_send_args* targs = args;					\
-    /* write on queue */						\
-    pthread_mutex_lock((targs->c)->lock);				\
-    TYPE##_push((targs->c)->messages, targs->value);			\
-    pthread_mutex_unlock((targs->c)->lock);				\
+    int res = 1;							\
+    /* Try to write on queue, res = 1 means allocation error */		\
+    while(res) {							\
+      /* write on queue */						\
+      pthread_mutex_lock((targs->c)->lock);				\
+      res = TYPE##_push((targs->c)->messages, targs->value);		\
+      pthread_mutex_unlock((targs->c)->lock);				\
+    }									\
     /* signal semaphore that a new message is in queue */		\
     sem_post((targs->c)->sem);						\
+    /* targs are temp and must be destroyed */				\
+    free(targs);							\
     pthread_exit(0);							\
   }									\
   									\
   /* send a message on channel C. void since it guarantees that the	\
      message will eventually be written in the queue */			\
-  void TYPE##_snd(TYPE##_channel* c, TYPE v) {				\
+  void TYPE##_snd(TYPE##_channel* c, TYPE* v) {				\
     struct TYPE##_send_args* args =					\
       (struct TYPE##_send_args *)malloc(sizeof(struct TYPE##_send_args)); \
-    TYPE* dyn_v = (TYPE*) malloc(sizeof(TYPE));				\
-    *dyn_v = v;								\
+    args->value = v;							\
     args->c = c;							\
-    args->value = dyn_v;						\
     pthread_t* ID = (pthread_t*)malloc(sizeof(pthread_t));		\
     /* Run primitive send in the same thread */				\
     pthread_create(ID, NULL, TYPE##_psend, args);			\
