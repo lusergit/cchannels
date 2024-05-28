@@ -8,6 +8,8 @@
   particular type. Also probably leaks memory, I'm not that good at
   managing memory.
 
+  Also!! This is a bit less than ~200 lines of code... quite proud
+
 * The reason
   Boredom and lack of comprehensive solutions in plain C (now I
   understand why)
