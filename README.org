@@ -54,4 +54,9 @@
     recive in the same channel... incredible!
 
 * Examples are provided
-  in the [[file:cchannels/examples/][examples]] folder
+  in the [[file:cchannels/examples/][examples]] folder, run
+  #+begin_src sh
+    make -k
+  #+end_src
+  to generate the examples, which will be available in the same
+  folder
